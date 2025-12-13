@@ -3,9 +3,10 @@
 <JUCERPROJECT id="YldDQV" name="Stutter" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginCode="Stut"
               pluginManufacturerCode="Dpez" pluginManufacturer="Daniel Pezdirc"
-              companyName="Daniel Pezdirc" cppLanguageStandard="20">
+              companyName="Daniel Pezdirc">
   <MAINGROUP id="fnA1p7" name="Stutter">
     <GROUP id="{34DB1CCF-B415-C72B-E660-44D71ABB27CB}" name="Source">
+      <FILE id="VN490P" name="UIHelpers.h" compile="0" resource="0" file="Source/UIHelpers.h"/>
       <FILE id="z9d20t" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="bkOppb" name="PluginProcessor.h" compile="0" resource="0"
