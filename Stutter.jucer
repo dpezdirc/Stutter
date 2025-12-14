@@ -6,6 +6,8 @@
               companyName="Daniel Pezdirc">
   <MAINGROUP id="fnA1p7" name="Stutter">
     <GROUP id="{34DB1CCF-B415-C72B-E660-44D71ABB27CB}" name="Source">
+      <FILE id="HdaF4v" name="FixedBuffer.cpp" compile="1" resource="0" file="Source/FixedBuffer.cpp"/>
+      <FILE id="HNarfW" name="FixedBuffer.h" compile="0" resource="0" file="Source/FixedBuffer.h"/>
       <FILE id="VN490P" name="UIHelpers.h" compile="0" resource="0" file="Source/UIHelpers.h"/>
       <FILE id="z9d20t" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

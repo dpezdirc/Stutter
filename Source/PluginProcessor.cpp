@@ -1,6 +1,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+constexpr double BUFFER_LENGTH_SECONDS = 1.0;
+
 //------------------------------------------------------------------------------
 StutterAudioProcessor::StutterAudioProcessor() :
 	AudioProcessor
@@ -30,6 +32,7 @@ bool StutterAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) c
 //------------------------------------------------------------------------------
 void StutterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
+	m_buffer = FixedBuffer(static_cast<int>(BUFFER_LENGTH_SECONDS * sampleRate));
 }
 
 //------------------------------------------------------------------------------

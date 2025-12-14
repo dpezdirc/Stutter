@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "FixedBuffer.h"
+
 #include <JuceHeader.h>
 
 //------------------------------------------------------------------------------
@@ -39,5 +41,7 @@ public:
 	void setCurrentProgram(int index) override {}
 
 private:
+	FixedBuffer m_buffer;
+
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StutterAudioProcessor)
 };
