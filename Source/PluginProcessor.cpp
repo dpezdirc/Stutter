@@ -15,14 +15,11 @@ StutterAudioProcessor::StutterAudioProcessor() :
 	),
 	m_params(*this, nullptr, juce::Identifier("StutterParams"),
 		{
-			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f),
-			std::make_unique<juce::AudioParameterBool>("enable", "Enable", true)
+			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f)
 		})
 {
 	m_pParamRepeatTime = dynamic_cast<juce::AudioParameterFloat*>(m_params.getParameter("repeatTime"));
 	assert(m_pParamRepeatTime);
-	m_pParamEnable = dynamic_cast<juce::AudioParameterBool*>(m_params.getParameter("enable"));
-	assert(m_pParamEnable);
 }
 
 //------------------------------------------------------------------------------
@@ -51,26 +48,44 @@ void StutterAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 {
 	juce::ScopedNoDenormals noDenormals;
 
-	const int nInputChannels = getTotalNumInputChannels();
-	const int nOutputChannels = getTotalNumOutputChannels();
 	const int nSamples = buffer.getNumSamples();
 
-	const bool enable = m_pParamEnable->get();
-	const bool enableLast = m_enableLast;
-	m_enableLast = enable;
+	const bool midiMsgThisFrame = !midiMessages.isEmpty();
+	const int midiMsgSamplePos = midiMsgThisFrame ? (*midiMessages.begin()).samplePosition : -1;
 
-	if (!enable)
-	{
-		if (enableLast)
-		{
-			m_repeatingBuffer.Reset();
-		}
+	if (!m_enable && !midiMsgThisFrame)
 		return;
-	}
 
 	m_repeatingBuffer.SetSize(GetRepeatLengthSamples());
 
-	for (int iChan = 0; iChan < std::min(nOutputChannels, 2); ++iChan)
+	if (midiMsgThisFrame)
+	{
+		ProcessBlockInternal(buffer, 0, midiMsgSamplePos);
+
+		const juce::MidiMessage msg = (*midiMessages.begin()).getMessage();
+		ApplyMidiMessage(msg);
+
+		const int nRemainingSamples = nSamples - midiMsgSamplePos;
+
+		ProcessBlockInternal(buffer, midiMsgSamplePos, nRemainingSamples);
+	}
+	else
+	{
+		ProcessBlockInternal(buffer, 0, nSamples);
+	}
+}
+
+//------------------------------------------------------------------------------
+void StutterAudioProcessor::ProcessBlockInternal(juce::AudioBuffer<float>& buffer, int idxStart, int nSamples)
+{
+	assert(idxStart + nSamples <= buffer.getNumSamples());
+
+	if (!m_enable)
+		return;
+
+	const int nOutputChannels = std::min(getTotalNumOutputChannels(), 2);
+
+	for (int iChan = 0; iChan < nOutputChannels; ++iChan)
 	{
 		float* pDst = buffer.getWritePointer(iChan);
 
@@ -82,13 +97,32 @@ void StutterAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 			break;
 		}
 
-		m_repeatingBuffer.WriteSamples(pDst, nSamples);
-
 		for (int n = 0; n < nSamples; ++n)
 		{
+			m_repeatingBuffer.WriteSample(pDst[n]);
 			pDst[n] = m_repeatingBuffer.ReadSample();
 		}
 	}
+}
+
+//------------------------------------------------------------------------------
+void StutterAudioProcessor::ApplyMidiMessage(const juce::MidiMessage& midiMessage)
+{
+	if (midiMessage.isNoteOn())
+	{
+		m_enable = true;
+	}
+	else if (midiMessage.isNoteOff())
+	{
+		m_enable = false;
+		m_repeatingBuffer.Reset();
+	}
+}
+
+//------------------------------------------------------------------------------
+int StutterAudioProcessor::GetRepeatLengthSamples()
+{
+	return static_cast<int>(m_pParamRepeatTime->get() * 0.001 * getSampleRate());
 }
 
 //------------------------------------------------------------------------------
@@ -105,12 +139,6 @@ void StutterAudioProcessor::setStateInformation(const void* data, int sizeInByte
 juce::AudioProcessorEditor* StutterAudioProcessor::createEditor()
 {
 	return new StutterAudioProcessorEditor(*this);
-}
-
-//------------------------------------------------------------------------------
-int StutterAudioProcessor::GetRepeatLengthSamples()
-{
-	return static_cast<int>(m_pParamRepeatTime->get() * 0.001 * getSampleRate());
 }
 
 //------------------------------------------------------------------------------

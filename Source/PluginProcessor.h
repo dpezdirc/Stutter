@@ -29,7 +29,7 @@ public:
 	// Mandatory, one-liner overrides
 	//--------------------------------------
 	bool hasEditor() const override { return false; }
-	bool acceptsMidi() const override { return false; }
+	bool acceptsMidi() const override { return true; }
 	bool producesMidi() const override { return false; }
 	bool isMidiEffect() const override { return false; }
 	double getTailLengthSeconds() const override { return 0.0; }
@@ -41,14 +41,15 @@ public:
 	void setCurrentProgram(int index) override {}
 
 private:
+	void ProcessBlockInternal(juce::AudioBuffer<float>& buffer, int idxStart, int nSamples);
+	void ApplyMidiMessage(const juce::MidiMessage& midiMessage);
 	int GetRepeatLengthSamples();
 
 private:
 	juce::AudioProcessorValueTreeState m_params;
 	juce::AudioParameterFloat* m_pParamRepeatTime;
-	juce::AudioParameterBool* m_pParamEnable;
 	RepeatingBuffer m_repeatingBuffer;
-	bool m_enableLast = false;
+	bool m_enable = false;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StutterAudioProcessor)
 };
