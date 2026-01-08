@@ -7,6 +7,7 @@
 #include "FixedBuffer.h"
 
 #include <JuceHeader.h>
+#include <array>
 
 //------------------------------------------------------------------------------
 class StutterAudioProcessor : public juce::AudioProcessor
@@ -48,7 +49,7 @@ private:
 private:
 	juce::AudioProcessorValueTreeState m_params;
 	juce::AudioParameterFloat* m_pParamRepeatTime;
-	RepeatingBuffer m_repeatingBuffer;
+	std::array<RepeatingBuffer, 2> m_repeatingBuffersPerChannel;
 	bool m_enable = false;
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StutterAudioProcessor)

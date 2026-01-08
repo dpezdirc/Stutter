@@ -40,7 +40,10 @@ bool StutterAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) c
 //------------------------------------------------------------------------------
 void StutterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-	m_repeatingBuffer = RepeatingBuffer(static_cast<int>(BUFFER_LENGTH_SECONDS * sampleRate), GetRepeatLengthSamples());
+	for (RepeatingBuffer& repeatingBuffer : m_repeatingBuffersPerChannel)
+	{
+		repeatingBuffer = RepeatingBuffer(static_cast<int>(BUFFER_LENGTH_SECONDS * sampleRate), GetRepeatLengthSamples());
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -56,7 +59,10 @@ void StutterAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 	if (!m_enable && !midiMsgThisFrame)
 		return;
 
-	m_repeatingBuffer.SetSize(GetRepeatLengthSamples());
+	for (RepeatingBuffer& repeatingBuffer : m_repeatingBuffersPerChannel)
+	{
+		repeatingBuffer.SetSize(GetRepeatLengthSamples());
+	}
 
 	if (midiMsgThisFrame)
 	{
@@ -89,18 +95,10 @@ void StutterAudioProcessor::ProcessBlockInternal(juce::AudioBuffer<float>& buffe
 	{
 		float* pDst = buffer.getWritePointer(iChan);
 
-		// TODO: remove after stereo support
-		if (iChan == 1)
-		{
-			const float* pSrc = buffer.getReadPointer(0);
-			memcpy(pDst, pSrc, nSamples * sizeof(float));
-			break;
-		}
-
 		for (int n = 0; n < nSamples; ++n)
 		{
-			m_repeatingBuffer.WriteSample(pDst[n]);
-			pDst[n] = m_repeatingBuffer.ReadSample();
+			m_repeatingBuffersPerChannel[iChan].WriteSample(pDst[n]);
+			pDst[n] = m_repeatingBuffersPerChannel[iChan].ReadSample();
 		}
 	}
 }
@@ -115,7 +113,11 @@ void StutterAudioProcessor::ApplyMidiMessage(const juce::MidiMessage& midiMessag
 	else if (midiMessage.isNoteOff())
 	{
 		m_enable = false;
-		m_repeatingBuffer.Reset();
+
+		for (RepeatingBuffer& repeatingBuffer : m_repeatingBuffersPerChannel)
+		{
+			repeatingBuffer.Reset();
+		}
 	}
 }
 
