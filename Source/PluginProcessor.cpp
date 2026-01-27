@@ -122,7 +122,7 @@ void StutterAudioProcessor::ProcessBlockInternal(juce::AudioBuffer<float>& buffe
 	{
 		float* pDst = buffer.getWritePointer(iChan);
 
-		for (int n = 0; n < nSamples; ++n)
+		for (int n = idxStart; n < nSamples; ++n)
 		{
 			m_repeatingBuffersPerChannel[iChan].WriteSample(pDst[n]);
 			pDst[n] = m_repeatingBuffersPerChannel[iChan].ReadSample();
