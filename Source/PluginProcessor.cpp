@@ -15,7 +15,8 @@ StutterAudioProcessor::StutterAudioProcessor() :
 	),
 	m_params(*this, nullptr, juce::Identifier("StutterParams"),
 		{
-			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f)
+			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f),
+			std::make_unique<juce::AudioParameterFloat>("panningStrength", "Panning Strength", juce::NormalisableRange<float>(0.0f, 1.f, 0.001f, 1.f), 0.f)
 #if PROVIDE_DEBUG_ENABLE_PARAM
 			,std::make_unique<juce::AudioParameterBool>("enable", "Enable", true)
 #endif
@@ -23,6 +24,8 @@ StutterAudioProcessor::StutterAudioProcessor() :
 {
 	m_pParamRepeatTime = dynamic_cast<juce::AudioParameterFloat*>(m_params.getParameter("repeatTime"));
 	assert(m_pParamRepeatTime);
+	m_pParamPanningStrength = dynamic_cast<juce::AudioParameterFloat*>(m_params.getParameter("panningStrength"));
+	assert(m_pParamPanningStrength);
 
 #if PROVIDE_DEBUG_ENABLE_PARAM
 	m_pParamDebugEnable = dynamic_cast<juce::AudioParameterBool*>(m_params.getParameter("enable"));
@@ -91,6 +94,8 @@ void StutterAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce:
 		repeatingBuffer.SetSize(GetRepeatLengthSamples());
 	}
 
+	UpdatePanning();
+
 	if (midiMsgThisFrame)
 	{
 		ProcessBlockInternal(buffer, 0, midiMsgSamplePos);
@@ -126,6 +131,8 @@ void StutterAudioProcessor::ProcessBlockInternal(juce::AudioBuffer<float>& buffe
 		{
 			m_repeatingBuffersPerChannel[iChan].WriteSample(pDst[n]);
 			pDst[n] = m_repeatingBuffersPerChannel[iChan].ReadSample();
+
+			ApplyPanning(iChan, pDst[n]);
 		}
 	}
 }
@@ -136,6 +143,10 @@ void StutterAudioProcessor::ApplyMidiMessage(const juce::MidiMessage& midiMessag
 	if (midiMessage.isNoteOn())
 	{
 		m_enable = true;
+
+		static const int initialPrimaryChannelIdx = 0;
+		InitializePanning(initialPrimaryChannelIdx);
+		
 	}
 	else if (midiMessage.isNoteOff())
 	{
@@ -149,9 +160,59 @@ void StutterAudioProcessor::ApplyMidiMessage(const juce::MidiMessage& midiMessag
 }
 
 //------------------------------------------------------------------------------
+void StutterAudioProcessor::InitializePanning(int primaryChannelIdx)
+{
+	m_gainPerChannel[primaryChannelIdx] = 1.f;
+	UpdatePanning();
+}
+
+//------------------------------------------------------------------------------
+void StutterAudioProcessor::UpdatePanning()
+{
+	const int nonDominantChannelIdx = m_gainPerChannel[0] == 1.f ? 1 : 0;
+	m_gainPerChannel[nonDominantChannelIdx] = GetSecondaryChannelGain(m_pParamPanningStrength->get());
+}
+
+//------------------------------------------------------------------------------
+void StutterAudioProcessor::ApplyPanning(int channelIdx, float& sample)
+{
+	sample *= m_gainPerChannel[channelIdx];
+
+	if (m_repeatingBuffersPerChannel[channelIdx].IsReadPositionAtStart())
+	{
+		ToggleChannelAttenuation(channelIdx);
+	}
+}
+
+//------------------------------------------------------------------------------
+void StutterAudioProcessor::ToggleChannelAttenuation(int channelIdx)
+{
+	const bool isPrimaryChannel = m_gainPerChannel[channelIdx] == 1.f;
+	if (isPrimaryChannel)
+	{
+		m_gainPerChannel[channelIdx] = GetSecondaryChannelGain(m_pParamPanningStrength->get());
+	}
+	else
+	{
+		m_gainPerChannel[channelIdx] = 1.f;
+	}
+}
+
+//------------------------------------------------------------------------------
 int StutterAudioProcessor::GetRepeatLengthSamples()
 {
 	return static_cast<int>(m_pParamRepeatTime->get() * 0.001 * getSampleRate());
+}
+
+//------------------------------------------------------------------------------
+float StutterAudioProcessor::GetSecondaryChannelGain(float panningStrength)
+{
+	assert(panningStrength >= 0.f && panningStrength <= 1.f);
+
+	const float targetSecondaryChannelGain = 1.f - panningStrength;
+	static const float MAX_SECONDARY_CHANNEL_GAIN = std::nextafter(1.f, 0.f);
+
+	return std::min(targetSecondaryChannelGain, MAX_SECONDARY_CHANNEL_GAIN);
 }
 
 //------------------------------------------------------------------------------

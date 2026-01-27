@@ -46,12 +46,19 @@ public:
 private:
 	void ProcessBlockInternal(juce::AudioBuffer<float>& buffer, int idxStart, int nSamples);
 	void ApplyMidiMessage(const juce::MidiMessage& midiMessage);
+	void InitializePanning(int primaryChannelIdx);
+	void UpdatePanning();
+	void ApplyPanning(int channelIdx, float& sample);
+	void ToggleChannelAttenuation(int channelIdx);
 	int GetRepeatLengthSamples();
+	float GetSecondaryChannelGain(float panningStrength);
 
 private:
 	juce::AudioProcessorValueTreeState m_params;
-	juce::AudioParameterFloat* m_pParamRepeatTime;
+	juce::AudioParameterFloat* m_pParamRepeatTime; // [ms]
+	juce::AudioParameterFloat* m_pParamPanningStrength; // [0, 1]
 	std::array<RepeatingBuffer, 2> m_repeatingBuffersPerChannel;
+	std::array<float, 2> m_gainPerChannel;
 	bool m_enable = false;
 
 #if PROVIDE_DEBUG_ENABLE_PARAM

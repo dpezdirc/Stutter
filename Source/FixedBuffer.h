@@ -34,6 +34,7 @@ public:
 	void WriteSample(float sample);
 	void WriteSamples(const float* samples, int nSamples);
 	float ReadSample();
+	bool IsReadPositionAtStart() { return m_readIdx == 0; }
 
 private:
 	FixedBuffer m_fixedBuffer;
