@@ -16,10 +16,18 @@ StutterAudioProcessor::StutterAudioProcessor() :
 	m_params(*this, nullptr, juce::Identifier("StutterParams"),
 		{
 			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f)
+#if PROVIDE_DEBUG_ENABLE_PARAM
+			,std::make_unique<juce::AudioParameterBool>("enable", "Enable", true)
+#endif
 		})
 {
 	m_pParamRepeatTime = dynamic_cast<juce::AudioParameterFloat*>(m_params.getParameter("repeatTime"));
 	assert(m_pParamRepeatTime);
+
+#if PROVIDE_DEBUG_ENABLE_PARAM
+	m_pParamDebugEnable = dynamic_cast<juce::AudioParameterBool*>(m_params.getParameter("enable"));
+	assert(m_pParamDebugEnable);
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -50,6 +58,25 @@ void StutterAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock
 void StutterAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 	juce::ScopedNoDenormals noDenormals;
+
+#if PROVIDE_DEBUG_ENABLE_PARAM
+	const bool debugEnable = m_pParamDebugEnable->get();
+	const bool debugEnableLast = m_debugEnableLast;
+	m_debugEnableLast = debugEnable;
+
+	if (debugEnable != debugEnableLast)
+	{
+		juce::MidiMessage debugMidiMsg;
+		const int channel = 1;
+		const int noteNumber = 1;
+		const juce::uint8 velocity = 1;
+		if (debugEnable)
+			debugMidiMsg = juce::MidiMessage::noteOn(channel, noteNumber, velocity);
+		else
+			debugMidiMsg = juce::MidiMessage::noteOff(channel, noteNumber);
+		midiMessages.addEvent(debugMidiMsg, 0);
+	}
+#endif
 
 	const int nSamples = buffer.getNumSamples();
 

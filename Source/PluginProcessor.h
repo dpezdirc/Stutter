@@ -9,6 +9,8 @@
 #include <JuceHeader.h>
 #include <array>
 
+#define PROVIDE_DEBUG_ENABLE_PARAM 1
+
 //------------------------------------------------------------------------------
 class StutterAudioProcessor : public juce::AudioProcessor
 {
@@ -51,6 +53,11 @@ private:
 	juce::AudioParameterFloat* m_pParamRepeatTime;
 	std::array<RepeatingBuffer, 2> m_repeatingBuffersPerChannel;
 	bool m_enable = false;
+
+#if PROVIDE_DEBUG_ENABLE_PARAM
+	juce::AudioParameterBool* m_pParamDebugEnable;
+	bool m_debugEnableLast = false;
+#endif
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StutterAudioProcessor)
 };
