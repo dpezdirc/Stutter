@@ -80,7 +80,13 @@ To use Stutter on these platforms, you must build the plugin from source.
 
 ## Building from Source
 
-An existing JUCE installation is **not** required to build the plugin; JUCE is included with the repository as a **git submodule**.
+JUCE is included with the respository as a git submodule, therefore building the plugin is possible without an existing JUCE installation.
+
+### Prerequisites
+
+- **Projucer** executable
+  - The JUCE repository does **not** contain a prebuilt Projucer executable; you must build from source or download it separately in a JUCE release.
+- A supported IDE (e.g. Visual Studio or Xcode)
 
 ### Steps
 
@@ -88,8 +94,8 @@ An existing JUCE installation is **not** required to build the plugin; JUCE is i
 
    - ```git clone --recurse-submodules https://github.com/dpezdirc/Stutter.git```
 
-2. Open the `.jucer` file in **Projucer** (```JUCE/extras/Projucer/Projucer.jucer```).
-   - The project is preconfigured to reference the JUCE modules from the included submodule directory; no additional JUCE setup is required.
+2. Open the `.jucer` file in **Projucer**.
+   - The project is preconfigured to reference the JUCE modules from the included submodule directory; no modification of the `.jucer` file is required.
 
 4. Generate the project files for your platform (e.g. Visual Studio / Xcode).
 
