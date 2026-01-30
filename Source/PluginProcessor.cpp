@@ -18,7 +18,7 @@ StutterAudioProcessor::StutterAudioProcessor() :
 			std::make_unique<juce::AudioParameterFloat>("repeatTime", "Repeat Time [ms]", juce::NormalisableRange<float>(0.1f, 1000.f, 0.01f, 1.f), 500.f),
 			std::make_unique<juce::AudioParameterFloat>("panningStrength", "Panning Strength", juce::NormalisableRange<float>(0.0f, 1.f, 0.001f, 1.f), 0.f)
 #if PROVIDE_DEBUG_ENABLE_PARAM
-			,std::make_unique<juce::AudioParameterBool>("enable", "Enable", true)
+			,std::make_unique<juce::AudioParameterBool>("enable", "Enable", false)
 #endif
 		})
 {
