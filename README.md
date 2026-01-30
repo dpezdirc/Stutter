@@ -4,8 +4,6 @@
 
 The effect is designed to be **sample-accurate**, making it suitable for precise manual edits as well as live performance.
 
----
-
 ## Features
 
 - MIDI-triggered stutter effect (note on = enable, note off = disable)
@@ -14,8 +12,6 @@ The effect is designed to be **sample-accurate**, making it suitable for precise
 - Optional ping-pong panning with adjustable depth
 - Lightweight user interface
 
----
-
 ## Controls
 
 ### Repeat Time [ms]
@@ -23,8 +19,6 @@ The effect is designed to be **sample-accurate**, making it suitable for precise
 Sets the length of the audio segment that is captured and repeated while the effect is enabled.
 
 As the repeat time approaches 0, the repeated audio segment becomes indiscernible and the output takes on an oscillator-like quality.
-
----
 
 ### Panning Strength
 
@@ -44,8 +38,6 @@ The following table illustrates how the L/R channel gains change with each repea
 | 2        | 0.0    | 1.0    |
 | 3        | 1.0    | 0.0    |
 | 4        | 0.0    | 1.0    |
-
----
 
 ## MIDI Control
 
@@ -75,8 +67,6 @@ Currently, prebuilt binaries are provided **for Windows only**.
 Prebuilt binaries are not currently available for macOS or Linux.
 
 To use Stutter on these platforms, you must build the plugin from source.
-
----
 
 ## Building from Source
 
@@ -108,6 +98,6 @@ JUCE is included with the respository as a git submodule, therefore building the
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**.  
 See the `LICENSE` file for full license terms.
 
-Stutter is built using the **JUCE** framework, which is included in this repository as a git submodule.  
+This plugin is built using the **JUCE** framework, which is included in this repository as a git submodule.  
 JUCE is dual-licensed under the **AGPLv3** and a commercial license. This project uses JUCE under the terms of the **AGPLv3**, in accordance with JUCE’s licensing requirements.  
 See the JUCE submodule and its accompanying license file for detailed information.
